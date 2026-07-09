@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #0e1216;
+  color: #cfd6de;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #2e3844;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.maplibregl-ctrl-group {
+  background: #1b2129 !important;
+  border: 1px solid #2e3844;
+}
+.maplibregl-ctrl-group button {
+  filter: invert(0.85);
+}
+.maplibregl-ctrl-scale {
+  background: rgba(20, 24, 29, 0.75) !important;
+  color: #cfd6de !important;
+  border-color: #cfd6de !important;
+  font-family: ui-monospace, monospace;
+}

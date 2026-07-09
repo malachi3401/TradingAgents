@@ -1,0 +1,39 @@
+{
+  "name": "nato-training-map",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Educational NATO APP-6(D) tactical planning trainer on a fictional Canadian training area",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@mapbox/tiny-sdf": "^2.2.0",
+    "@turf/turf": "^7.1.0",
+    "d3-contour": "^4.0.2",
+    "jspdf": "^2.5.2",
+    "maplibre-gl": "^4.7.1",
+    "mgrs": "^2.1.0",
+    "milsymbol": "^2.2.0",
+    "pbf": "^5.1.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/d3-contour": "^3.0.6",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.5"
+  }
+}
