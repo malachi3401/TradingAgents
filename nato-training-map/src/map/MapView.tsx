@@ -11,7 +11,11 @@ import { buildGrid } from './grid'
 import { AREA_CENTER, elevationAt } from '../terrain/elevation'
 import { latLonToUtm, utmToLatLon, toMgrs } from '../utils/coords'
 import { findGraphicDef } from '../graphics/catalog'
+import { findCatalogEntry, type CatalogEntry } from '../symbols/catalog'
 import { OVERLAY_IDS, type Feature, type GraphicFeature, type OverlayId } from '../types'
+
+/** MIME type used for the native HTML5 drag-and-drop of palette symbols. */
+export const SYMBOL_DRAG_MIME = 'application/x-nato-symbol'
 
 /** Module-level handle so toolbar actions (export, fly-to) can reach the map. */
 export const mapHandle: { current: MlMap | null } = { current: null }
@@ -161,9 +165,37 @@ export default function MapView() {
     map.getCanvas().style.cursor = c
   }, [tool])
 
+  const [dragOver, setDragOver] = useState(false)
+
   return (
     <div className="relative h-full w-full">
-      <div ref={containerRef} className="h-full w-full" />
+      <div
+        ref={containerRef}
+        className={`h-full w-full ${dragOver ? 'outline outline-2 -outline-offset-2 outline-accent' : ''}`}
+        onDragOver={(e) => {
+          if (!e.dataTransfer.types.includes(SYMBOL_DRAG_MIME)) return
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'copy'
+          if (!dragOver) setDragOver(true)
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          const key = e.dataTransfer.getData(SYMBOL_DRAG_MIME)
+          setDragOver(false)
+          if (!key) return
+          e.preventDefault()
+          const entry = findCatalogEntry(key)
+          const map = mapRef.current
+          const container = containerRef.current
+          if (!entry || !map || !container) return
+          const rect = container.getBoundingClientRect()
+          const point: [number, number] = [e.clientX - rect.left, e.clientY - rect.top]
+          const ll = map.unproject(point)
+          const snapped = snapLngLat([ll.lng, ll.lat], useStore.getState().project.settings.snapToGrid)
+          placeSymbolFeature(entry, snapped)
+          useStore.getState().setTool('select')
+        }}
+      />
       {/* North arrow (rotates with map bearing) */}
       <div
         className="pointer-events-none absolute right-3 top-24 z-10 flex h-12 w-12 items-center justify-center rounded-full border border-edge bg-panel/80"
@@ -489,29 +521,7 @@ function handleClick(map: MlMap, e: MapMouseEvent) {
     case 'place-symbol': {
       const entry = state.placingSymbol
       if (!entry) return
-      const paletteDefaults = usePaletteDefaults()
-      state.addFeature(state.activeOverlay, {
-        id: newId(),
-        kind: 'symbol',
-        position: lngLat,
-        symbolSet: entry.symbolSet,
-        entity: entry.entity,
-        affiliation: paletteDefaults.affiliation,
-        context: paletteDefaults.context,
-        echelon: paletteDefaults.echelon,
-        hqtf: '0',
-        modifier1: entry.modifier1 ?? '00',
-        modifier2: entry.modifier2 ?? '00',
-        designation: '',
-        higherFormation: '',
-        additionalInfo: '',
-        reinforcedReduced: '',
-        rotation: 0,
-        scale: 1,
-        locked: false,
-        visible: true,
-      })
-      state.noteRecent(entry.key)
+      placeSymbolFeature(entry, lngLat)
       return
     }
     case 'draw-point': {
@@ -638,8 +648,31 @@ export const paletteDefaults = {
   echelon: '14' as import('../types').Echelon,
 }
 
-function usePaletteDefaults() {
-  return paletteDefaults
+/** Add a symbol feature from a catalog entry, using the palette's current defaults. */
+export function placeSymbolFeature(entry: CatalogEntry, lngLat: [number, number]): void {
+  const state = useStore.getState()
+  state.addFeature(state.activeOverlay, {
+    id: newId(),
+    kind: 'symbol',
+    position: lngLat,
+    symbolSet: entry.symbolSet,
+    entity: entry.entity,
+    affiliation: paletteDefaults.affiliation,
+    context: paletteDefaults.context,
+    echelon: paletteDefaults.echelon,
+    hqtf: '0',
+    modifier1: entry.modifier1 ?? '00',
+    modifier2: entry.modifier2 ?? '00',
+    designation: '',
+    higherFormation: '',
+    additionalInfo: '',
+    reinforcedReduced: '',
+    rotation: 0,
+    scale: 1,
+    locked: false,
+    visible: true,
+  })
+  state.noteRecent(entry.key)
 }
 
 /** Sample the fictional heightfield along the current profile line. */

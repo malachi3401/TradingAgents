@@ -4,7 +4,7 @@ import { BRANCHES, SYMBOL_CATALOG, searchCatalog, type CatalogEntry } from '../s
 import { GRAPHIC_CATALOG, GRAPHIC_GROUPS, findGraphicDef } from '../graphics/catalog'
 import { buildSidc } from '../symbols/sidc'
 import { previewSvg } from '../map/symbolImages'
-import { paletteDefaults } from '../map/MapView'
+import { paletteDefaults, SYMBOL_DRAG_MIME } from '../map/MapView'
 import {
   AFFILIATION_DIGIT,
   ECHELON_NAMES,
@@ -213,10 +213,15 @@ function PaletteSection({
           {entries.map((e) => (
             <div
               key={`${title}-${e.key}`}
-              className={`group relative flex cursor-pointer flex-col items-center rounded border p-1.5 hover:border-accent ${
+              draggable
+              onDragStart={(dragEv) => {
+                dragEv.dataTransfer.setData(SYMBOL_DRAG_MIME, e.key)
+                dragEv.dataTransfer.effectAllowed = 'copy'
+              }}
+              className={`group relative flex cursor-grab flex-col items-center rounded border p-1.5 hover:border-accent active:cursor-grabbing ${
                 placing?.key === e.key ? 'border-accent bg-panel3' : 'border-edge bg-panel2'
               }`}
-              title={`${e.name} — click, then click the map to place`}
+              title={`${e.name} — drag onto the map, or click then click the map to place`}
               onClick={() => store.armSymbol(e)}
             >
               <div
